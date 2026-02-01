@@ -155,7 +155,7 @@ def on_ui_tabs():
                     value="192.168.1.104",
                     placeholder="oooo"
                 )
-                status = gr.Textbox(label="hi", value="ok")
+                status = gr.Textbox(label="hi", value="ok",interactive=False)
                 btn = gr.Button("start", variant="primary")
                 connection_status = gr.State(False)
                 
@@ -165,7 +165,6 @@ def on_ui_tabs():
                     outputs=[status, connection_status, btn, target_ip]
                 )
 
-    return [(demo, "掰掰", "remote_control_client_tab")]
+    return [(demo, "PNG 1nfo", "remote_control_client_tab")]
+
 script_callbacks.on_ui_tabs(on_ui_tabs)
-
-
