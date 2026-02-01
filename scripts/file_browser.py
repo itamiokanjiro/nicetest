@@ -167,4 +167,4 @@ def on_ui_tabs():
 
     return [(demo, "掰掰", "remote_control_client_tab")]
 
-script_callbacks.on_ui_tabs(on_ui_tabs)
+
